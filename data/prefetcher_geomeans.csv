@@ -1,0 +1,9 @@
+scope,method,metric,value,trace_count,notes
+online_berti_l2,PPF,speedup_vs_berti_no_L2,0.980,609,Berti fijo en L1
+online_berti_l2,Pythia,speedup_vs_berti_no_L2,1.027,609,Berti fijo en L1
+online_berti_l2,uMAMA,speedup_vs_berti_no_L2,1.027,609,Berti fijo en L1
+llm_32,No L2,geomean_ipc,1.134,32,mismas trazas que LLM
+llm_32,PPF,geomean_ipc,1.110,32,mismas trazas que LLM
+llm_32,Pythia,geomean_ipc,1.198,32,mismas trazas que LLM
+llm_32,uMAMA,geomean_ipc,1.211,32,mismas trazas que LLM
+llm_32,LLM,geomean_ipc,1.176,32,mismas trazas que LLM

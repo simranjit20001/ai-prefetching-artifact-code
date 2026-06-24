@@ -1,0 +1,8 @@
+order,year,architecture,l2_kb
+1,2008,Nehalem,256
+2,2011,Sandy Bridge,256
+3,2013,Haswell,256
+4,2015,Skylake,256
+5,2019,Ice Lake,512
+6,2021,Golden Cove,1280
+7,2023,Redwood Cove,2048

@@ -1,0 +1,6 @@
+campaign,runs,hours,mean_min,median_min,min_min,max_min,source
+online_all_available,4874,550.4922,6.7767,6.3667,1.8167,41.9000,sum of final ChampSim Simulation complete CPU time in available logs/out files
+online_berti_fixed_l1,2439,278.6203,6.8541,6.4167,2.0333,35.3167,sum of final ChampSim Simulation complete CPU time in available logs/out files
+dagger_available_out,38,58.8111,92.8596,7.2750,1.8333,648.1833,sum of final ChampSim Simulation complete CPU time in available logs/out files
+llm_all_available_logs,387,22.6114,3.5056,2.6667,1.0667,17.1667,sum of final ChampSim Simulation complete CPU time in available logs/out files
+available_total,5299,631.9147,7.1551,6.2333,1.0667,648.1833,sum of final ChampSim Simulation complete CPU time in available logs/out files

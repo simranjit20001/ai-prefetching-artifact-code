@@ -1,0 +1,52 @@
+{
+  "config": "external/ChampSim/dpc4/1C.fullBW.l1_berti.l2_ml_l2.json",
+  "executable": "1C.fullBW.l1_berti.l2_ml_l2",
+  "trace_list": "external/ChampSim/ml_training/dagger_train_traces.txt",
+  "train_trace_count": 12,
+  "eval_trace_list": "external/ChampSim/ml_training/dagger_train_traces.txt",
+  "eval_trace_count": 12,
+  "iterations": 5,
+  "skip_iteration_eval": false,
+  "skip_iteration_test": true,
+  "collect_threshold": "0",
+  "test_patience": 0,
+  "min_test_improvement": 0.0005,
+  "train_window": {
+    "warmup": 20000000,
+    "sim": 20000000
+  },
+  "validation_window": {
+    "warmup": 40000000,
+    "sim": 20000000
+  },
+  "test_window": {
+    "warmup": 60000000,
+    "sim": 20000000
+  },
+  "mlp_thresholds": [
+    "-2",
+    "-0.5",
+    "0"
+  ],
+  "mlp_early_stop_patience": 5,
+  "train_lgbm": true,
+  "lgbm_thresholds": [
+    "-0.5",
+    "0",
+    "0.5"
+  ],
+  "lgbm_samples": 2000000,
+  "lgbm_estimators": 500,
+  "dagger_driver": "mlp",
+  "hidden0": 256,
+  "hidden1": 128,
+  "pressure_neg_scale": 2.0,
+  "pressure_pos_scale": 0.0,
+  "objective": "bce",
+  "bad_base_cost": 0.04,
+  "bad_pressure_scale": 1.5,
+  "bad_pollution_scale": 2.0,
+  "bad_access_scale": 0.5,
+  "keep_raw_state_dumps": false,
+  "warm_start_best": false
+}

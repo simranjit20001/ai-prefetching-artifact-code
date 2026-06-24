@@ -1,0 +1,13 @@
+positive_rows,rows,sampled_rows,trace_id
+75280,2458336,50000,Graph_GMS_gms.triangle_count.soc-pokec-relationships.slice-599.champsimtrace.gz
+122161,1105098,50000,Graph_Ligra_ligra_Triangle.com-lj.ungraph.gcc_6.3.0_O3.drop_25000M.length_250M.champsimtrace.xz
+132740,446241,50000,SPEC17_602.gcc_s-734B.champsimtrace.xz
+152389,441577,50000,SPEC17_623.xalancbmk_s-165B.champsimtrace.xz
+14525,194184,50000,SPEC17_627.cam4_s-573B.champsimtrace.xz
+302189,811837,50000,SPEC17_649.fotonik3d_s-1176B.champsimtrace.xz
+135,9007,9007,SPEC17_657.xz_s-56B.champsimtrace.xz
+1572959,2417328,50000,ai-ml_bark.cpp-bark-small.semantic_token_gen.3.champsimtrace.gz
+1168827,1516710,50000,ai-ml_llama2.c-stories15M.1.champsimtrace.gz
+160767,849420,50000,ai-ml_whisper_trace_1.champsimtrace.gz
+20196,1047449,50000,gtrace_v2_arizona_arizona_0000.champsim.gz
+49441,274637,50000,gtrace_v2_yankee_yankee_0010.champsim.gz

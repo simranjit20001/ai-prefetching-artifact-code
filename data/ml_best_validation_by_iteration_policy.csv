@@ -1,0 +1,11 @@
+binary,checkpoint,dagger_driver,geo_ipc,header,iteration,kind,l2_pf_accuracy,l2_pf_issued,l2_pf_useful,name,policy,threshold,traces
+,,,1.724611,,0,lgbm_val,0.388661,1360637,528827,iter00_lgbm_val_-0.5,lgbm,-0.5,12
+,,,1.770540,,0,mlp_val,0.463515,2403296,1113964,iter00_mlp_val_-2,mlp,-2,12
+,,,1.752624,,1,lgbm_val,0.490652,1997012,979838,iter01_lgbm_val_-0.5,lgbm,-0.5,12
+,,,1.811063,,1,mlp_val,0.539547,2537384,1369037,iter01_mlp_val_-2,mlp,-2,12
+,,,1.755007,,2,lgbm_val,0.495337,2101336,1040870,iter02_lgbm_val_-0.5,lgbm,-0.5,12
+,,,1.832542,,2,mlp_val,0.548775,2676961,1469050,iter02_mlp_val_-2,mlp,-2,12
+,,,1.756466,,3,lgbm_val,0.485523,2023807,982605,iter03_lgbm_val_-0.5,lgbm,-0.5,12
+,,,1.842861,,3,mlp_val,0.536197,2786360,1494037,iter03_mlp_val_-2,mlp,-2,12
+,,,1.748512,,4,lgbm_val,0.499149,1940054,968376,iter04_lgbm_val_-0.5,lgbm,-0.5,12
+,,,1.840480,,4,mlp_val,0.537105,2837612,1524097,iter04_mlp_val_-2,mlp,-2,12
