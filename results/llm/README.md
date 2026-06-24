@@ -1,11 +1,12 @@
-# LLM Design-Search Results
+# Resultados de la línea LLM
 
-Summarized results for the LLM-based prefetcher design-search line.
+Resultados resumidos de la línea de búsqueda offline de diseños de prefetcher con agentes LLM.
 
-This folder groups iteration-level summaries and per-trace results for the selected 12-trace evaluation set. The final prefetcher source is provided in `../../prefetchers/LLM/`.
+La carpeta agrupa resúmenes por iteración, resultados por traza y logs metodológicos ligeros para la selección de 12 trazas. El código final del prefetcher está en `../../prefetchers/LLM/`.
 
-Main files:
+Ficheros principales:
 
-- `llm_iteration_summary.csv`: iteration-level summary.
-- `llm_best_attempt_by_iteration.csv`: best candidate by iteration.
-- `llm_results_all.csv`: per-trace simulation results.
+- `llm_iteration_summary.csv`: resumen por iteración.
+- `llm_best_attempt_by_iteration.csv`: mejor candidato de cada iteración.
+- `llm_results_all.csv`: resultados de simulación por traza.
+- `logs/`: contexto inicial, reglas resumidas de iteración y estructura relevante del repositorio usado en la línea LLM.

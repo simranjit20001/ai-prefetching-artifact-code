@@ -8,4 +8,4 @@ Contenido:
 - `MLP/`: modelo MLP de la iteracion de referencia y cabecera exportada para integracion en ChampSim.
 - `LightGBM/`: modelo LightGBM de la iteracion de referencia.
 
-PPF, Pythia, uMAMA y Berti se tratan como artefactos externos evaluados en el flujo experimental. Sus resultados resumidos estan en `../ChampSimOnline`.
+PPF, Pythia, uMAMA y Berti se tratan como artefactos externos evaluados en el flujo experimental. Sus resultados resumidos estan en `../results/online`.

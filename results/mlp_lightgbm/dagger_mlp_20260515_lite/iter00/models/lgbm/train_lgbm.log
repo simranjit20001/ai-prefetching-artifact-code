@@ -1,0 +1,21 @@
+loading rows=559019 train_rows=447215 val_rows=111804
+train_samples=9550857 max_samples=2000000
+built_train_features=200000/2000000
+built_train_features=400000/2000000
+built_train_features=600000/2000000
+built_train_features=800000/2000000
+built_train_features=1000000/2000000
+built_train_features=1200000/2000000
+built_train_features=1400000/2000000
+built_train_features=1600000/2000000
+built_train_features=1800000/2000000
+built_train_features=2000000/2000000
+fit x=(2000000, 37) positives=243052 threads=11
+saved /private/tmp/ml_l2_dagger_branches_20260515_001200/mlp/iter00/models/lgbm/candidate_lgbm.joblib
+exported /private/tmp/ml_l2_dagger_branches_20260515_001200/mlp/iter00/models/lgbm/ml_l2_lgbm_weights_candidate.h
+evaluated_positive_rows=20000/89291
+evaluated_positive_rows=40000/89291
+evaluated_positive_rows=60000/89291
+evaluated_positive_rows=80000/89291
+val pos_rows=89291 base=0.0819 top1_hit=0.6186 top4_hit=0.8252 top4_wrecall=0.6478 top4_precision=0.4541
+total_elapsed_s=98.0

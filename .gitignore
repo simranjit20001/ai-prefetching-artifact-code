@@ -23,6 +23,7 @@ tmp/
 *.fls
 *.lof
 *.log
+!results/mlp_lightgbm/dagger_mlp_20260515_lite/iter*/models/*/train*.log
 *.lot
 *.out
 *.pdf
