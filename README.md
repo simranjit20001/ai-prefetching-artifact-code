@@ -1,4 +1,4 @@
-# Artefacto del TFM: AI Prefetching
+# AI Prefetching
 
 Código y artefactos públicos del TFM sobre técnicas de prebúsqueda de datos con aprendizaje automático.
 
