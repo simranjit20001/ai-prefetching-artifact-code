@@ -1,6 +1,6 @@
 tipo_carga,trazas,PPF,Pythia,uMAMA
 AI-ML,3,0,1,2
-GTrace,2,1,1,0
+GTrace,2,0,1,1
 Graph-GMS,1,0,0,1
 Graph-Ligra,1,0,0,1
-SPEC17,5,2,1,2
+SPEC17,5,1,2,2

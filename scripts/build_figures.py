@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Build figures from the packaged CSV summaries."""
+"""Build graph-ready figures for the second TFM submission.
+
+The script is intentionally deterministic: every figure used by the LaTeX
+document is rebuilt from the CSV files listed in ENTREGA2_WORK_CONTEXT.md.
+"""
 
 from __future__ import annotations
 
 import math
 import re
 from os.path import basename
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -15,13 +20,53 @@ import numpy as np
 import pandas as pd
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-FIG = REPO_ROOT / "figures"
-LATEX_ROOT = REPO_ROOT / "latex"
+REPRO_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = REPRO_ROOT.parent
+
+
+def _first_existing(*candidates: Path) -> Path:
+    """Return the first candidate that exists, or the first one as fallback.
+
+    El script debe funcionar en dos disposiciones distintas sin editarlo:
+      - artefacto autónomo:  <raíz>/{data,results,scripts,figures}
+      - paquete de entrega:  <raíz>/{00_latex_src,02_artifacts,03_reproduccion}
+    """
+    for candidate in candidates:
+        if candidate is not None and candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+# Directorio de datos: admite override por entorno para auditorías externas.
+_ENV_DATA = os.environ.get("TFM_DATA_DIR")
+GRAPH_PACK = (
+    Path(_ENV_DATA).resolve()
+    if _ENV_DATA
+    else _first_existing(REPRO_ROOT / "data", PROJECT_ROOT / "02_artifacts" / "data")
+)
+PACKAGED_GRAPH_PACK = GRAPH_PACK
+
+FIG = REPRO_ROOT / "figures"
+
+# Árbol LaTeX: solo se escribe en él cuando la disposición de entrega está presente.
+LATEX_ROOT = PROJECT_ROOT / "00_latex_src"
+HAS_LATEX_ROOT = LATEX_ROOT.is_dir()
 LATEX_FIG = LATEX_ROOT / "figures"
-PACKAGED_GRAPH_PACK = REPO_ROOT / "data"
-GRAPH_PACK = PACKAGED_GRAPH_PACK
-DAGGER_ROOT = REPO_ROOT / "results" / "mlp_lightgbm" / "dagger_mlp_20260515_lite"
+
+FINAL_60M80M_BY_TRACE = GRAPH_PACK / "final_60m80m_by_trace.csv"
+FINAL_60M80M_SUMMARY = GRAPH_PACK / "final_60m80m_summary.csv"
+
+_DAGGER_REL = Path("results") / "mlp_lightgbm" / "dagger_mlp_20260515_lite"
+DAGGER_ROOT = _first_existing(
+    REPRO_ROOT / _DAGGER_REL,
+    PROJECT_ROOT / "02_artifacts" / _DAGGER_REL,
+)
+PACKAGED_DAGGER_ROOT = DAGGER_ROOT
+
+
+def data_file(name: str) -> Path:
+    """Resuelve un CSV de entrada mirando primero en data/ y luego en figures/."""
+    return _first_existing(GRAPH_PACK / name, FIG / name)
 
 
 PALETTE = {
@@ -74,13 +119,88 @@ def trace_key(path_value: str | Path) -> str:
     return name
 
 
+def final_results_available() -> bool:
+    return FINAL_60M80M_BY_TRACE.exists()
+
+
+def final_workload_group(trace_value: str) -> str:
+    text = str(trace_value)
+    if text.startswith("SPEC17/"):
+        return "SPEC17"
+    if text.startswith("Graph/GMS/"):
+        return "Graph-GMS"
+    if text.startswith("Graph/Ligra/"):
+        return "Graph-Ligra"
+    if text.startswith("ai-ml/"):
+        return "AI-ML"
+    if text.startswith("gtrace_v2/"):
+        return "GTrace"
+    return "Other"
+
+
+def load_final_60m80m_by_trace() -> pd.DataFrame:
+    df = pd.read_csv(FINAL_60M80M_BY_TRACE).copy()
+    method_to_common = {
+        "no_l2": "No L2",
+        "ppf": "PPF",
+        "pythia": "Pythia",
+        "umama": "uMAMA",
+        "mlp": "MLP",
+        "llm": "LLM",
+    }
+    method_to_display = {"ppf": "SPP+PPF", "pythia": "Pythia", "umama": "uMAMA", "mlp": "MLP", "llm": "LLM"}
+    df["trace_key"] = df["trace"].map(trace_key)
+    df["trace_label"] = df["trace_key"].map(short_trace_label)
+    df["workload_group"] = df["trace"].map(final_workload_group)
+    df["method_common"] = df["method"].map(method_to_common)
+    df["method_display"] = df["method"].map(method_to_display)
+    for col in ("ipc", "l2_load_miss", "l2_pf_issued", "l2_pf_useful"):
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    return df
+
+
+def final_60m80m_common_metrics() -> pd.DataFrame:
+    df = load_final_60m80m_by_trace()
+    base = df[df["method"] == "no_l2"].copy()
+    base_geo = geomean(base["ipc"])
+    base_misses = float(base["l2_load_miss"].sum())
+    records = []
+    for method, label in [
+        ("no_l2", "No L2"),
+        ("ppf", "PPF"),
+        ("pythia", "Pythia"),
+        ("umama", "uMAMA"),
+        ("mlp", "MLP"),
+        ("llm", "LLM"),
+    ]:
+        rows = df[df["method"] == method].copy()
+        issued = float(rows["l2_pf_issued"].sum())
+        useful = float(rows["l2_pf_useful"].sum())
+        misses = float(rows["l2_load_miss"].sum())
+        geo_ipc = geomean(rows["ipc"])
+        records.append(
+            {
+                "method": label,
+                "source": "final_60m80m_test",
+                "traces": int(rows["trace_key"].nunique()),
+                "geo_ipc": geo_ipc,
+                "speedup": geo_ipc / base_geo,
+                "precision": useful / issued if issued else np.nan,
+                "coverage": (base_misses - misses) / base_misses if base_misses else np.nan,
+                "issued": issued,
+                "useful": useful,
+                "l2_load_miss": misses,
+            }
+        )
+    out = pd.DataFrame(records)
+    out.to_csv(GRAPH_PACK / "dagger_12_common_metrics.csv", index=False)
+    return out
+
+
 def savefig(*names: str) -> None:
-    output_dirs = [FIG]
-    if LATEX_ROOT.exists():
-        output_dirs.append(LATEX_FIG)
     for name in names:
         for ext in ("pdf", "png"):
-            for out_dir in output_dirs:
+            for out_dir in ((FIG, LATEX_FIG) if HAS_LATEX_ROOT else (FIG,)):
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out = out_dir / f"{name}.{ext}"
                 plt.savefig(out, bbox_inches="tight", dpi=260, facecolor="white")
@@ -110,9 +230,10 @@ def resolve_packaged_path(path_value: str | Path) -> Path:
     if p.exists():
         return p
     if not p.is_absolute():
-        candidate = REPO_ROOT / p
-        if candidate.exists():
-            return candidate
+        for base in (PROJECT_ROOT / "02_artifacts", PROJECT_ROOT):
+            candidate = base / p
+            if candidate.exists():
+                return candidate
     marker = "ml_l2_dagger_branches_20260515_001200/mlp/"
     text = str(p)
     if marker in text and DAGGER_ROOT.exists():
@@ -371,6 +492,8 @@ def figure_diagram_dagger() -> None:
 
 
 def read_common_12_metrics() -> pd.DataFrame:
+    if final_results_available():
+        return final_60m80m_common_metrics()
     df = pd.read_csv(GRAPH_PACK / "dagger_12_common_metrics.csv").copy()
     df["method"] = df["method"].astype(str)
     return df
@@ -384,6 +507,8 @@ def common_12_row(df: pd.DataFrame, method: str) -> pd.Series:
 
 
 def common_12_trace_keys() -> set[str]:
+    if final_results_available():
+        return set(load_final_60m80m_by_trace()["trace_key"].dropna().unique())
     ml = pd.read_csv(GRAPH_PACK / "ml_collection_by_trace.csv").copy()
     ml = ml[(ml["mode"] == "train_20M_20M") & (ml["policy"] == "mlp")].copy()
     ml["trace_key"] = ml["trace"].map(trace_key)
@@ -431,7 +556,7 @@ def figure_online_speedup() -> dict[str, float]:
 
 
 def figure_intel_l2_history() -> None:
-    df = pd.read_csv(GRAPH_PACK / "intel_l2_history.csv").sort_values("order")
+    df = pd.read_csv(data_file("intel_l2_history.csv")).sort_values("order")
     fig, ax = plt.subplots(figsize=(7.4, 3.7))
     x = np.arange(len(df))
     colors = ["#9B9EA3"] * 4 + ["#7FAEA8", "#4B9288", PALETTE["umama"]]
@@ -472,6 +597,98 @@ def figure_intel_l2_history() -> None:
 
 
 def online_trace_metrics() -> dict[str, float | int]:
+    if final_results_available():
+        df = load_final_60m80m_by_trace()
+        policies = ["no_l2", "ppf", "pythia", "umama"]
+        wide = (
+            df[df["method"].isin(policies)]
+            .pivot_table(index=["trace_key", "workload_group"], columns="method", values="ipc", aggfunc="first")
+            .dropna(subset=policies)
+            .reset_index()
+        )
+        for policy in ("ppf", "pythia", "umama"):
+            wide[f"{policy}_speedup"] = wide[policy] / wide["no_l2"]
+
+        wide["winner"] = wide[["ppf", "pythia", "umama"]].idxmax(axis=1)
+        pythia_over_umama = wide[wide["pythia"] > wide["umama"]].copy()
+        umama_over_pythia = wide[wide["umama"] > wide["pythia"]].copy()
+        pythia_win_margin_pct = (
+            (geomean(pythia_over_umama["pythia"] / pythia_over_umama["umama"]) - 1.0) * 100.0
+            if not pythia_over_umama.empty
+            else 0.0
+        )
+        umama_win_margin_pct = (
+            (geomean(umama_over_pythia["umama"] / umama_over_pythia["pythia"]) - 1.0) * 100.0
+            if not umama_over_pythia.empty
+            else 0.0
+        )
+        winners = wide["winner"].value_counts()
+        by_group = (
+            pd.crosstab(wide["workload_group"], wide["winner"])
+            .reindex(columns=["ppf", "pythia", "umama"], fill_value=0)
+            .reset_index()
+            .rename(columns={"workload_group": "tipo_carga", "ppf": "PPF", "pythia": "Pythia", "umama": "uMAMA"})
+        )
+        by_group.insert(1, "trazas", by_group["PPF"] + by_group["Pythia"] + by_group["uMAMA"])
+        by_group.to_csv(PACKAGED_GRAPH_PACK / "online_berti_l2_winner_counts.csv", index=False)
+
+        traffic = {}
+        common_traces = set(wide["trace_key"])
+        for policy in ("ppf", "pythia", "umama"):
+            rows = df[(df["method"] == policy) & (df["trace_key"].isin(common_traces))]
+            issued = float(rows["l2_pf_issued"].sum())
+            useful = float(rows["l2_pf_useful"].sum())
+            traffic[f"online_{policy}_issued_m"] = issued / 1_000_000.0
+            traffic[f"online_{policy}_useful_m"] = useful / 1_000_000.0
+            traffic[f"online_{policy}_accuracy_pct"] = 100.0 * useful / issued if issued else 0.0
+            traffic[f"online_{policy}_losses"] = int((wide[f"{policy}_speedup"] < 1.0).sum())
+
+        group_counts = by_group.set_index("tipo_carga").to_dict(orient="index")
+
+        def group_value(group: str, col: str) -> int:
+            return int(group_counts.get(group, {}).get(col, 0))
+
+        def group_geomean(group: str, policy: str) -> float:
+            rows = wide[wide["workload_group"] == group]
+            if rows.empty:
+                return 0.0
+            return float(geomean(rows[f"{policy}_speedup"]))
+
+        return {
+            "online_common_traces": int(len(wide)),
+            "online_ppf_wins": int(winners.get("ppf", 0)),
+            "online_pythia_wins": int(winners.get("pythia", 0)),
+            "online_umama_wins": int(winners.get("umama", 0)),
+            "online_pythia_over_umama": int((wide["pythia"] > wide["umama"]).sum()),
+            "online_umama_over_pythia": int((wide["umama"] > wide["pythia"]).sum()),
+            "online_pythia_umama_ties": int((wide["umama"] == wide["pythia"]).sum()),
+            "online_pythia_win_margin_pct": float(pythia_win_margin_pct),
+            "online_umama_win_margin_pct": float(umama_win_margin_pct),
+            "online_aiml_pythia_speedup": group_geomean("AI-ML", "pythia"),
+            "online_aiml_umama_speedup": group_geomean("AI-ML", "umama"),
+            "online_aiml_traces": group_value("AI-ML", "trazas"),
+            "online_aiml_ppf_wins": group_value("AI-ML", "PPF"),
+            "online_aiml_pythia_wins": group_value("AI-ML", "Pythia"),
+            "online_aiml_umama_wins": group_value("AI-ML", "uMAMA"),
+            "online_gtrace_traces": group_value("GTrace", "trazas"),
+            "online_gtrace_ppf_wins": group_value("GTrace", "PPF"),
+            "online_gtrace_pythia_wins": group_value("GTrace", "Pythia"),
+            "online_gtrace_umama_wins": group_value("GTrace", "uMAMA"),
+            "online_gms_traces": group_value("Graph-GMS", "trazas"),
+            "online_gms_ppf_wins": group_value("Graph-GMS", "PPF"),
+            "online_gms_pythia_wins": group_value("Graph-GMS", "Pythia"),
+            "online_gms_umama_wins": group_value("Graph-GMS", "uMAMA"),
+            "online_ligra_traces": group_value("Graph-Ligra", "trazas"),
+            "online_ligra_ppf_wins": group_value("Graph-Ligra", "PPF"),
+            "online_ligra_pythia_wins": group_value("Graph-Ligra", "Pythia"),
+            "online_ligra_umama_wins": group_value("Graph-Ligra", "uMAMA"),
+            "online_spec_traces": group_value("SPEC17", "trazas"),
+            "online_spec_ppf_wins": group_value("SPEC17", "PPF"),
+            "online_spec_pythia_wins": group_value("SPEC17", "Pythia"),
+            "online_spec_umama_wins": group_value("SPEC17", "uMAMA"),
+            **traffic,
+        }
+
     df = pd.read_csv(GRAPH_PACK / "classic_champsim_by_trace.csv")
     df = df[df["l1_prefetcher"] == "berti"].copy()
     source = df["trace_path_reported"].fillna(df["trace_file"])
@@ -591,6 +808,38 @@ def short_trace_label(trace_name: str) -> str:
 
 
 def common_trace_speedups() -> pd.DataFrame:
+    if final_results_available():
+        final = load_final_60m80m_by_trace()
+        base = (
+            final[final["method"] == "no_l2"]
+            .drop_duplicates("trace_key")
+            [["trace_key", "trace_label", "workload_group", "ipc"]]
+            .rename(columns={"ipc": "no_ipc"})
+        )
+        group_order = {"SPEC17": 0, "Graph-GMS": 1, "Graph-Ligra": 2, "AI-ML": 3, "GTrace": 4}
+        base["group_order"] = base["workload_group"].map(group_order).fillna(99)
+        base = base.sort_values(["group_order", "trace_label"]).drop(columns=["group_order"]).reset_index(drop=True)
+
+        records = []
+        for policy, label in [("ppf", "SPP+PPF"), ("pythia", "Pythia"), ("umama", "uMAMA"), ("mlp", "MLP"), ("llm", "LLM")]:
+            rows = final[final["method"] == policy].drop_duplicates("trace_key")[["trace_key", "ipc"]]
+            merged = base.merge(rows, on="trace_key", how="inner")
+            for _, row in merged.iterrows():
+                records.append(
+                    {
+                        "trace_key": row["trace_key"],
+                        "trace_label": row["trace_label"],
+                        "workload_group": row["workload_group"],
+                        "method": label,
+                        "speedup": float(row["ipc"] / row["no_ipc"]),
+                    }
+                )
+        out = pd.DataFrame(records)
+        order = base[["trace_key", "trace_label", "workload_group"]].copy()
+        out = out.merge(order.assign(trace_order=np.arange(len(order))), on=["trace_key", "trace_label", "workload_group"])
+        out = out.sort_values(["trace_order", "method"]).drop(columns=["trace_order"])
+        return out
+
     common = read_common_12_metrics()
     trace_keys = common_12_trace_keys()
 
@@ -700,23 +949,23 @@ def figure_all_methods_by_trace() -> None:
         .reindex(index=method_order, columns=trace_order)
     )
 
-    fig, ax = plt.subplots(figsize=(10.2, 4.3))
+    fig, ax = plt.subplots(figsize=(10.8, 5.55))
     cmap = LinearSegmentedColormap.from_list("speedup_diverging", ["#B65A55", "#F7F7F7", "#2F7D72"])
     norm = TwoSlopeNorm(vmin=-25.0, vcenter=0.0, vmax=25.0)
     im = ax.imshow(mat.values, cmap=cmap, norm=norm, aspect="auto")
 
     ax.set_xticks(np.arange(len(trace_order)))
-    ax.set_xticklabels([labels[t] for t in trace_order], rotation=35, ha="right", rotation_mode="anchor")
+    ax.set_xticklabels([labels[t] for t in trace_order], rotation=35, ha="right", rotation_mode="anchor", fontsize=8.8)
     ax.set_yticks(np.arange(len(method_order)))
-    ax.set_yticklabels(method_order)
+    ax.set_yticklabels(method_order, fontsize=9.2)
     ax.tick_params(length=0)
-    ax.set_title("Mejora por traza", loc="left", fontsize=10, fontweight=600, color=PALETTE["text"], pad=7)
+    ax.set_title("Mejora por traza", loc="left", fontsize=11.5, fontweight=600, color=PALETTE["text"], pad=8)
 
     for i, method in enumerate(method_order):
         for j, trace in enumerate(trace_order):
             value = float(mat.loc[method, trace])
             label = "0.0" if abs(value) < 0.05 else f"{value:+.1f}"
-            ax.text(j, i, label, ha="center", va="center", fontsize=6.8, color=PALETTE["text"])
+            ax.text(j, i, label, ha="center", va="center", fontsize=7.8, color=PALETTE["text"])
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.03, pad=0.025)
     cbar.set_label("Mejora (%)")
@@ -837,10 +1086,6 @@ def figure_dagger_validation() -> dict[str, float]:
 
 
 def read_dagger_offline_metrics() -> pd.DataFrame:
-    packaged = GRAPH_PACK / "dagger_offline_metrics.csv"
-    if packaged.exists():
-        return pd.read_csv(packaged)
-
     pattern = re.compile(
         r"val(?: epoch=(?P<epoch>\d+))? pos_rows=(?P<pos_rows>\d+) "
         r"base=(?P<base>[0-9.]+) top1_hit=(?P<top1_hit>[0-9.]+) "
@@ -1298,13 +1543,15 @@ def write_metrics(metrics: dict[str, float | int | str]) -> None:
         "",
     ]
     text = "\n".join(lines)
-    (REPO_ROOT / "generated_metrics.tex").write_text(text, encoding="utf-8")
-    if LATEX_ROOT.exists():
+    if HAS_LATEX_ROOT:
         (LATEX_ROOT / "generated_metrics.tex").write_text(text, encoding="utf-8")
+    (REPRO_ROOT / "generated_metrics.tex").write_text(text, encoding="utf-8")
 
 
 def main() -> None:
     FIG.mkdir(exist_ok=True)
+    if HAS_LATEX_ROOT:
+        LATEX_FIG.mkdir(parents=True, exist_ok=True)
     plt.rcParams.update(
         {
             "font.family": "DejaVu Sans",
