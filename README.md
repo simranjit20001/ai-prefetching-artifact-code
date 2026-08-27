@@ -1,4 +1,4 @@
-# Artefacto del TFM — Prebúsqueda de datos con aprendizaje automático
+# AI Prefetching
 
 Código, modelos y datos que respaldan las cifras y figuras de la memoria
 *«Aprendizaje automático para la prebúsqueda de datos en procesadores»*
@@ -12,7 +12,7 @@ Repositorio: <https://github.com/simranjit20001/ai-prefetching-artifact-code>
 
 ```bash
 python3 -m pip install -r requirements.txt
-scripts/verify_reproduction.sh
+scripts/reproduce.sh
 ```
 
 Si imprime `OK: el artefacto reproduce exactamente las métricas de la memoria`, todo lo que
@@ -94,16 +94,24 @@ desde `generated_metrics.tex`, que produce `scripts/build_figures.py`.
 | Tabla 5.5 (coste hardware) | Trabajos originales de cada política y estructuras evaluadas aquí |
 | Tabla A.1 (campañas) | `data/simulation_time_summary.csv` |
 
-### Cuidado con los ficheros de reserva
+### En `data/` hay entradas y salidas mezcladas
 
-`data/dagger_12_common_metrics.csv` y `data/dagger_same_traces_compare.csv` contienen valores
-muy parecidos a los publicados, pero **no son la fuente de las cifras de la memoria**.
-`scripts/build_figures.py` los usa solo como reserva, cuando `data/final_60m80m_by_trace.csv`
-no existe (`final_results_available()`). Con el repositorio completo esa reserva nunca se activa.
+Cuatro ficheros de `data/` **no son entradas: los reescribe el propio generador** en cada
+ejecución. Están versionados porque son cómodos de inspeccionar, pero editarlos no sirve de
+nada: la siguiente ejecución los sobrescribe.
 
-Consecuencia práctica: si editas uno de esos dos ficheros no cambiará ninguna cifra y
-`verify_reproduction.sh` seguirá pasando. Para tocar los números publicados hay que editar
-los ficheros de la campaña final.
+```
+data/all_methods_by_trace_speedup.csv
+data/dagger_12_common_metrics.csv
+data/dagger_same_traces_compare.csv
+data/online_berti_l2_winner_counts.csv
+```
+
+Es fácil tropezar con ellos porque contienen exactamente las cifras publicadas. Si quieres
+cambiar un número, hay que tocar la campaña final (`data/final_60m80m_*.csv`), no estas copias.
+
+Si falta `data/final_60m80m_by_trace.csv`, el generador **aborta con un error explícito**.
+Antes caía en silencio a la campaña `classic` y producía cifras distintas de las publicadas.
 
 Las tablas 2.x, 3.x y 4.x son descriptivas y no consumen datos del artefacto.
 
@@ -146,7 +154,7 @@ con 52,5 % de precisión frente al 5,3 % de uMAMA.
 
 ## Qué se comprueba y qué no
 
-`scripts/verify_reproduction.sh` regenera las métricas y las compara byte a byte con
+`scripts/reproduce.sh` regenera las métricas y las compara byte a byte con
 `reference/generated_metrics.expected.tex`. Sale con código 0 si coinciden y 1 ante cualquier
 divergencia. Cubre todas las cifras numéricas que la memoria toma del artefacto: IPC geométrico
 y mejora por método, prebúsquedas emitidas y útiles, precisión, cobertura, recuentos de
@@ -162,7 +170,7 @@ de las figuras.
 La campaña original se ejecutó con Python 3.13. La verificación se ha comprobado también con
 Python 3.11 y 3.14, matplotlib 3.10, numpy 2.4 y pandas 3.0, con métricas idénticas. `requirements.txt`
 no fija versiones porque el resultado no depende de ellas dentro de esos rangos; si una versión
-futura introdujese divergencias, `verify_reproduction.sh` las detectaría.
+futura introdujese divergencias, `reproduce.sh` las detectaría.
 
 ---
 

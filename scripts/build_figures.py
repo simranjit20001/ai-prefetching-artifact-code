@@ -120,7 +120,23 @@ def trace_key(path_value: str | Path) -> str:
 
 
 def final_results_available() -> bool:
-    return FINAL_60M80M_BY_TRACE.exists()
+    """Comprueba que esta la campana final 60M-80M, que es obligatoria.
+
+    Antes esta funcion devolvia False cuando faltaba el CSV, y las funciones que
+    la consultan caian a la campana `classic` (20M+20M). El efecto era que, sin
+    ese fichero, el paquete generaba figuras y metricas distintas de las
+    publicadas en la memoria sin avisar de nada. Ahora es un error explicito.
+
+    Las ramas de reserva que aparecen mas abajo quedan como referencia de como se
+    calculaban las cifras con la campana `classic`, pero ya no pueden ejecutarse.
+    """
+    if not FINAL_60M80M_BY_TRACE.exists():
+        raise SystemExit(
+            f"ERROR: falta {FINAL_60M80M_BY_TRACE}.\n"
+            "Es la campana final 60M-80M, de la que salen todas las cifras de la memoria.\n"
+            "Sin ese fichero el paquete produciria numeros que no son los publicados."
+        )
+    return True
 
 
 def final_workload_group(trace_value: str) -> str:

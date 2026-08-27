@@ -2,6 +2,14 @@
 
 Esta carpeta contiene datos resumidos y ligeros usados para construir las figuras del documento.
 
+## Entradas y salidas
+
+Estos cuatro los **reescribe** `scripts/build_figures.py` en cada ejecución; editarlos no tiene
+efecto: `all_methods_by_trace_speedup.csv`, `dagger_12_common_metrics.csv`,
+`dagger_same_traces_compare.csv` y `online_berti_l2_winner_counts.csv`.
+
+Las cifras publicadas se calculan desde `final_60m80m_by_trace.csv` y `final_60m80m_summary.csv`.
+
 ## Grupos de ficheros
 
 - `classic_champsim_*.csv`: resultados resumidos y por traza de PPF, Pythia y uMAMA.

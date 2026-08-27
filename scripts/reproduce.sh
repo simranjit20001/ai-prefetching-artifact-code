@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Verifica que el artefacto reproduce exactamente las métricas publicadas en la memoria.
 #
-#   scripts/verify_reproduction.sh
+#   scripts/reproduce.sh
 #
 # Regenera figuras y generated_metrics.tex desde los CSV incluidos y compara el
 # resultado con reference/generated_metrics.expected.tex. Sale con código 0 si
