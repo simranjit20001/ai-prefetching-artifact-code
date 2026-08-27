@@ -27,11 +27,20 @@ Código 0 = correcto, 1 = divergencia. **Ejecútalo antes y después de cualquie
    - manifiesto: `python3 scripts/build_manifest.py`
 3. `reference/generated_metrics.expected.tex` contiene las cifras **publicadas**. No lo toques
    salvo que la memoria cambie de verdad; es el patrón contra el que se verifica todo.
-4. Hay **dos campañas** con números distintos y ambas son legítimas:
+4. **Ficheros de reserva que engañan.** `data/dagger_12_common_metrics.csv` y
+   `data/dagger_same_traces_compare.csv` tienen valores casi iguales a los publicados, pero
+   `build_figures.py` solo los lee si falta `data/final_60m80m_by_trace.csv`
+   (ver `final_results_available()`). Con el repositorio completo esa rama nunca se ejecuta.
+   Si los editas, **no cambia ninguna cifra y la verificación sigue pasando**. Los números
+   publicados salen de `data/final_60m80m_by_trace.csv` y `data/final_60m80m_summary.csv`.
+5. Hay **dos campañas** con números distintos y ambas son legítimas:
    - `final_60m80m_test` (60M calentamiento + 20M medidos) → **es la de la memoria**;
    - `classic` (20M+20M) → campaña previa, en los ficheros con sufijo `_campana_classic`
      y en `data/classic_champsim_*.csv`.
    Si una cifra no cuadra con el documento, comprueba primero de qué campaña viene.
+
+Comprobado: alterar `ipc` en `data/final_60m80m_by_trace.csv` hace que
+`verify_reproduction.sh` salga con código 1 y muestre el diff. La verificación es real.
 
 ## Dónde está cada cosa
 

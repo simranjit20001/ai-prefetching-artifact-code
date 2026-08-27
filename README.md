@@ -65,15 +65,17 @@ Cada figura y cada tabla del documento, con su origen.
 | Figura 2.3 | `figures/diagram_pythia.pdf` | Diagrama, dibujado por código |
 | Figura 2.4 | `figures/diagram_mab.pdf` | Diagrama, dibujado por código |
 | Figura 4.2 | `figures/diagram_dagger.pdf` | Diagrama, dibujado por código |
-| Figura 5.1 | `figures/fig_online_speedup.pdf` | `data/final_60m80m_summary.csv` |
+| Figura 5.1 | `figures/fig_online_speedup.pdf` | **campaña final** |
 | Figura 5.2 | `figures/fig_dagger_data.pdf` | `data/ml_models_progress.csv` |
 | Figura 5.3 | `figures/fig_dagger_offline_online.pdf` | `data/ml_models_progress.csv`, `data/dagger_offline_metrics.csv` |
-| Figura 5.4 | `figures/fig_dagger_same_traces.pdf` | `data/dagger_same_traces_compare.csv` |
+| Figura 5.4 | `figures/fig_dagger_same_traces.pdf` | **campaña final** |
 | Figura 5.5 | `figures/fig_threshold_matrix.pdf` | `data/ml_best_validation_by_iteration_policy.csv` |
 | Figura 5.6 | `figures/fig_lgbm_shap.pdf` | `data/ml_lgbm_treeshap.csv` |
-| Figura 5.7 | `figures/fig_llm_methods_12.pdf` | `data/dagger_12_common_metrics.csv` |
+| Figura 5.7 | `figures/fig_llm_methods_12.pdf` | **campaña final** |
 | Figura 5.8 | `figures/fig_all_methods_by_trace.pdf` | `data/all_methods_by_trace_speedup.csv` |
 | Figura 5.9 | `figures/fig_intel_l2_history.pdf` | `data/intel_l2_history.csv` |
+
+**campaña final** = `data/final_60m80m_by_trace.csv` y `data/final_60m80m_summary.csv`.
 
 La Figura 2.1 y la Figura 4.1 se dibujan dentro del propio documento LaTeX y no dependen
 de este paquete.
@@ -85,12 +87,23 @@ desde `generated_metrics.tex`, que produce `scripts/build_figures.py`.
 
 | Memoria | Datos de partida |
 |---|---|
-| Tabla 5.1 (resumen online) | `data/final_60m80m_summary.csv` |
+| Tabla 5.1 (resumen online) | campaña final |
 | Tabla 5.2 (métricas offline DAgger) | `data/dagger_offline_metrics.csv` |
-| Tabla 5.3 (12 trazas, actividad) | `data/dagger_12_common_metrics.csv` |
-| Tabla 5.4 (comparación principal) | `data/dagger_same_traces_compare.csv` |
+| Tabla 5.3 (12 trazas, actividad) | campaña final |
+| Tabla 5.4 (comparación principal) | campaña final |
 | Tabla 5.5 (coste hardware) | Trabajos originales de cada política y estructuras evaluadas aquí |
 | Tabla A.1 (campañas) | `data/simulation_time_summary.csv` |
+
+### Cuidado con los ficheros de reserva
+
+`data/dagger_12_common_metrics.csv` y `data/dagger_same_traces_compare.csv` contienen valores
+muy parecidos a los publicados, pero **no son la fuente de las cifras de la memoria**.
+`scripts/build_figures.py` los usa solo como reserva, cuando `data/final_60m80m_by_trace.csv`
+no existe (`final_results_available()`). Con el repositorio completo esa reserva nunca se activa.
+
+Consecuencia práctica: si editas uno de esos dos ficheros no cambiará ninguna cifra y
+`verify_reproduction.sh` seguirá pasando. Para tocar los números publicados hay que editar
+los ficheros de la campaña final.
 
 Las tablas 2.x, 3.x y 4.x son descriptivas y no consumen datos del artefacto.
 
@@ -147,7 +160,7 @@ de las figuras.
 ### Entorno
 
 La campaña original se ejecutó con Python 3.13. La verificación se ha comprobado también con
-Python 3.11, matplotlib 3.10, numpy 2.4 y pandas 3.0, con métricas idénticas. `requirements.txt`
+Python 3.11 y 3.14, matplotlib 3.10, numpy 2.4 y pandas 3.0, con métricas idénticas. `requirements.txt`
 no fija versiones porque el resultado no depende de ellas dentro de esos rangos; si una versión
 futura introdujese divergencias, `verify_reproduction.sh` las detectaría.
 
