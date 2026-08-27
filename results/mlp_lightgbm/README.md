@@ -10,7 +10,9 @@ Ficheros principales:
 - `ml_models_progress.csv`: progreso de modelos y seleccion de validacion.
 - `ml_validation_by_trace.csv`: validacion por traza.
 - `dagger_same_traces_compare.csv`: comparacion de MLP con referencias online.
-- `dagger_12_common_metrics.csv`: metricas de rendimiento y actividad en la seleccion compartida.
+- `dagger_12_common_metrics_campana_classic.csv`: metricas de rendimiento y actividad en la seleccion
+  compartida, **campana `classic` (20M+20M)**. No es la campana final. Las cifras publicadas en la
+  memoria salen de `data/dagger_12_common_metrics.csv`, campana `final_60m80m_test`.
 - `ml_lgbm_treeshap.csv` y `ml_lgbm_top15_val_summary.json`: analisis de LightGBM.
 - `dagger_mlp_20260515_lite/`: copia ligera del run principal, con logs de entrenamiento por iteración.
 
