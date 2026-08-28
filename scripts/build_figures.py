@@ -312,8 +312,15 @@ def diagram_arrow(ax, start, end, rad=0.0, color=None, style="-|>", lw=0.9, dash
     return arrow
 
 
-def diagram_canvas(width=10.5, height=3.6):
-    fig, ax = plt.subplots(figsize=(width, height))
+def diagram_canvas(width=10.5, height=3.6, scale=1.0):
+    """Lienzo para los diagramas.
+
+    `scale` reduce el tamano en pulgadas sin tocar el sistema de coordenadas, que
+    sigue yendo de 0 a width/height. Asi las cajas y flechas mantienen su posicion
+    mientras el texto, que va en puntos, deja de encogerse al incluir la figura en
+    LaTeX. Sin esto las etiquetas llegaban al documento a menos de 3 pt.
+    """
+    fig, ax = plt.subplots(figsize=(width * scale, height * scale))
     ax.set_xlim(0, width)
     ax.set_ylim(0, height)
     ax.axis("off")
@@ -383,7 +390,7 @@ def stacked_table(ax, x, y, w, h, fontsize=5.8):
 
 
 def figure_diagram_ppf() -> None:
-    fig, ax = diagram_canvas(10.8, 3.05)
+    fig, ax = diagram_canvas(10.8, 3.05, scale=0.78)
     blue = "#2E5E8C"
     warm = "#8A5A2B"
     gray = "#1D1D1F"
@@ -438,7 +445,7 @@ def figure_diagram_ppf() -> None:
 
 
 def figure_diagram_pythia() -> None:
-    fig, ax = diagram_canvas(7.8, 3.10)
+    fig, ax = diagram_canvas(7.8, 3.10, scale=0.80)
     blue = "#2E5E8C"
     warm = "#8A5A2B"
     gray = "#1D1D1F"
@@ -457,7 +464,7 @@ def figure_diagram_pythia() -> None:
 
 
 def figure_diagram_mab() -> None:
-    fig, ax = diagram_canvas(8.4, 3.05)
+    fig, ax = diagram_canvas(8.4, 3.05, scale=0.78)
     blue = "#2E5E8C"
     warm = "#8A5A2B"
     gray = "#1D1D1F"
@@ -473,7 +480,7 @@ def figure_diagram_mab() -> None:
     simple_box(ax, 4.30, y_top - 0.18, 1.16, 0.36, "config. 2", "", fill="#F3F7FB", edge=blue, title_size=7.0)
     simple_box(ax, 4.30, 1.49, 1.16, 0.36, "config. k", "", fill=light, edge=gray, title_size=7.0)
 
-    simple_box(ax, 6.42, 1.61, 1.46, 0.98, "ejecución", "prefetcher activo", fill=light, edge=gray)
+    simple_box(ax, 6.42, 1.61, 1.46, 0.98, "ejecución", "prebuscador activo", fill=light, edge=gray)
     simple_box(ax, 6.42, 0.41, 1.46, 0.62, "recompensa", "IPC ventana", fill="#FAF4EA", edge=warm, title_size=8.0, sub_size=6.0)
     simple_box(ax, 2.18, 0.41, 1.56, 0.62, "actualizar", "estimaciones", fill=light, edge=gray, title_size=8.0, sub_size=6.0)
 
@@ -487,7 +494,7 @@ def figure_diagram_mab() -> None:
 
 
 def figure_diagram_dagger() -> None:
-    fig, ax = diagram_canvas(7.7, 4.05)
+    fig, ax = diagram_canvas(7.7, 4.05, scale=0.82)
     blue = "#2E5E8C"
     warm = "#8A5A2B"
     gray = "#1D1D1F"
@@ -537,7 +544,7 @@ def figure_online_speedup() -> dict[str, float]:
     speedups = np.array([float(common_12_row(common, m)["speedup"]) for m in methods], dtype=float)
     values = speedup_to_pct(speedups)
 
-    fig, ax = plt.subplots(figsize=(7.6, 4.35))
+    fig, ax = plt.subplots(figsize=(5.5, 3.15))
     colors = [PALETTE["ppf"], PALETTE["pythia"], PALETTE["umama"]]
     ax.bar(
         np.arange(len(methods)),
@@ -573,7 +580,7 @@ def figure_online_speedup() -> dict[str, float]:
 
 def figure_intel_l2_history() -> None:
     df = pd.read_csv(data_file("intel_l2_history.csv")).sort_values("order")
-    fig, ax = plt.subplots(figsize=(7.4, 3.7))
+    fig, ax = plt.subplots(figsize=(5.5, 2.75))
     x = np.arange(len(df))
     colors = ["#9B9EA3"] * 4 + ["#7FAEA8", "#4B9288", PALETTE["umama"]]
     bars = ax.bar(
@@ -965,7 +972,7 @@ def figure_all_methods_by_trace() -> None:
         .reindex(index=method_order, columns=trace_order)
     )
 
-    fig, ax = plt.subplots(figsize=(10.8, 5.55))
+    fig, ax = plt.subplots(figsize=(5.79, 2.98))
     cmap = LinearSegmentedColormap.from_list("speedup_diverging", ["#B65A55", "#F7F7F7", "#2F7D72"])
     norm = TwoSlopeNorm(vmin=-25.0, vcenter=0.0, vmax=25.0)
     im = ax.imshow(mat.values, cmap=cmap, norm=norm, aspect="auto")
@@ -1030,7 +1037,7 @@ def figure_dagger_dataset_growth() -> dict[str, float]:
     df = pd.DataFrame(rows).drop_duplicates("iteration").sort_values("iteration")
     df["positive_pct"] = 100.0 * df["positive_rows"] / df["total_rows"]
 
-    fig, ax1 = plt.subplots(figsize=(10.5, 5.4))
+    fig, ax1 = plt.subplots(figsize=(5.56, 2.86))
     x = np.arange(len(df))
     ax1.bar(x, df["total_rows"] / 1e6, color="#D6E4F2", label="Filas etiquetadas", width=0.62, edgecolor="white", linewidth=0.6)
     ax1.bar(x, df["positive_rows"] / 1e6, color="#2E6EA6", label="Filas positivas", width=0.62, edgecolor="white", linewidth=0.6)
@@ -1068,7 +1075,7 @@ def figure_dagger_validation() -> dict[str, float]:
 
     best = val.sort_values("geomean_ipc", ascending=False).groupby(["iteration", "policy"], as_index=False).first()
 
-    fig, ax = plt.subplots(figsize=(9.8, 5.2))
+    fig, ax = plt.subplots(figsize=(5.56, 2.95))
     for pol in ["mlp", "lgbm"]:
         sub = best[best["policy"] == pol].sort_values("iteration")
         ax.plot(
@@ -1145,7 +1152,7 @@ def figure_dagger_offline_metrics() -> dict[str, float]:
     df = read_dagger_offline_metrics()
     df.to_csv(FIG / "dagger_offline_metrics.csv", index=False)
 
-    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.6), sharex=True)
+    fig, axes = plt.subplots(1, 2, figsize=(5.56, 2.32), sharex=True)
     specs = [
         ("top4_wrecall", "Recall ponderado Top-4"),
         ("top4_precision", "Precisión Top-4"),
@@ -1194,7 +1201,7 @@ def figure_dagger_offline_online() -> None:
     online = val.sort_values("geomean_ipc", ascending=False).groupby(["iteration", "policy"], as_index=False).first()
 
     labels = {"mlp": "MLP", "lgbm": "LightGBM"}
-    fig, axes = plt.subplots(2, 1, figsize=(9.2, 6.2), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(5.56, 3.75), sharex=True)
     for policy in ["mlp", "lgbm"]:
         off = offline[offline["policy"] == policy].sort_values("iteration")
         on = online[online["policy"] == policy].sort_values("iteration")
@@ -1268,7 +1275,7 @@ def figure_dagger_same_traces() -> dict[str, float | int]:
     }
     speedups = {label: float(common_12_row(common, label)["speedup"]) for label in labels}
     vals = speedup_to_pct([speedups[k] for k in labels])
-    fig, ax = plt.subplots(figsize=(9.6, 4.85))
+    fig, ax = plt.subplots(figsize=(5.33, 2.69))
     ax.bar(
         np.arange(len(labels)),
         vals,
@@ -1331,7 +1338,7 @@ def figure_threshold_matrix() -> None:
     ]
     mat = val.pivot_table(index="row", columns="iteration", values="geomean_ipc", aggfunc="first").reindex(order_rows)
 
-    fig, ax = plt.subplots(figsize=(8.6, 4.9))
+    fig, ax = plt.subplots(figsize=(5.56, 3.17))
     im = ax.imshow(mat.values, cmap=APPLE_CMAP, aspect="auto")
     ax.set_xticks(np.arange(len(mat.columns)))
     ax.set_xticklabels([f"iter {i}" for i in mat.columns])
@@ -1379,7 +1386,7 @@ def figure_llm_methods_12() -> dict[str, float]:
     speedups = {label: float(common_12_row(common, label)["speedup"]) for label in labels}
     values = speedup_to_pct([speedups[k] for k in labels])
 
-    fig, ax = plt.subplots(figsize=(8.8, 4.6))
+    fig, ax = plt.subplots(figsize=(5.33, 2.78))
     ax.bar(
         np.arange(len(labels)),
         values,
@@ -1425,7 +1432,7 @@ def figure_shap() -> dict[str, float]:
     }
     shap["display_feature"] = shap["feature"].map(display_names).fillna(shap["feature"])
     shap = shap.iloc[::-1]
-    fig, ax = plt.subplots(figsize=(9.2, 5.6))
+    fig, ax = plt.subplots(figsize=(5.56, 3.38))
     ax.barh(shap["display_feature"], shap["share_of_total"] * 100, color="#2E6EA6", alpha=0.92)
     style_axes(ax, None, "Participación en |SHAP| total (%)")
     ax.grid(axis="x", color=PALETTE["grid"], linewidth=0.8, alpha=0.9)
